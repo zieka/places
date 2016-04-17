@@ -14,6 +14,7 @@ class Photo
   # metadata.location if these exist. The document hash is likely coming from
   # query results coming from mongo_client.database.fs.find.
   # create a default instance if no hash is present
+  # update the initialize method to cache the contents of metadata.place in an instance attribute called @place
   def initialize(hash={})
   	@id = hash[:_id].to_s unless hash[:_id].nil?
   	unless hash[:metadata].nil?
@@ -34,6 +35,7 @@ class Photo
     !@id.nil?
   end
 
+
   # check whether the instance is already persisted and do nothing (for now) if
   # already persisted (Hint: use your new persisted? method to determine if your instance has been persisted)
   # use the exifr gem to extract geolocation information from the jpeg image.
@@ -42,6 +44,12 @@ class Photo
   # file property and the object in class’ location property.
   # store the data contents in GridFS
   # store the generated _id for the file in the :id property of the Photo model instance.
+  # accept no inputs
+  # if the instance is not yet persisted, perform the existing logic to add the
+  # file to GridFS
+  # if the instance is already persisted (Hint: persisted? helper method added
+  # earlier) update the file info (Hint: find(...).update_one(...))
+  # update the save method to include the @place and @location properties under the parent metadata property in the file info.
   def save
     unless persisted?
       gps = EXIFR::JPEG.new(@contents).gps
@@ -118,5 +126,25 @@ class Photo
     place.nil? ? nil : place[:_id]
   end
 
+
+
+  # add a custom getter for place that will find and return a Place instance
+  # that represents the stored ID (Hint: Place.find)
+  def place
+    unless @place.nil?
+    	Place.find(@place.to_s)
+    end
+  end
+
+  # add a custom setter that will update the place ID by accepting a
+  # BSON::ObjectId, String, or Place instance. In all three cases you will want to
+  # derive a a BSON::ObjectId from what is passed in.
+  def place=(place)
+    @place = case place.class
+      when Place then BSON::ObjectId.from_string(place.id)
+      when String then BSON::ObjectId.from_string(place)
+      else place
+    end
+  end
 
 end
