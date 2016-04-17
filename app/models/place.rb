@@ -88,7 +88,7 @@ class Place
   # apply a provided sort or no sort if not provided (Hint: $sort and q.pipeline method)
   # apply a provided offset or no offset if not provided (Hint: $skip and q.pipeline method)
   # apply a provided limit or no limit if not provided (Hint: $limit and q.pipeline method)
-  # return the result of the above query (Hint: collection.find.aggregate(...))
+  # return the result of the above clause (Hint: collection.find.aggregate(...))
   def self.get_address_components(sort = nil, offset = 0, limit = nil)
     clause = [
       {
@@ -180,4 +180,23 @@ class Place
     collection.indexes.drop_one('geometry.geolocation_2dsphere')
   end
 
+  # accept an input parameter of type Point (created earlier) and an optional
+  # max_meters that defaults to no maximum
+  # performs a $near search using the 2dsphere index placed on the
+  # geometry.geolocation property and the GeoJSON output of point.to_hash
+  # (created earlier). (Hint: Query a 2dsphere Index)
+  # limits the maximum distance – if provided – in determining matches (Hint: $maxDistance)
+  # returns the resulting view (i.e., the result of find())
+  def self.near(point, max_meters= nil)
+    clause = {
+      :'geometry.geolocation' => {
+        :$near => {
+          :$geometry => point.to_hash,
+          :$maxDistance => max_meters
+        }
+      }
+    }
+
+    collection.find(clause)
+  end
 end
