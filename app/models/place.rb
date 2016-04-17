@@ -208,4 +208,17 @@ class Place
     result = self.class.near(@location, max_meters)
     self.class.to_places(result)
   end
+
+  # accept an optional set of arguments (offset, and limit) to skip into and
+  # limit the result set. The offset should default to 0 and the limit should default to unbounded.
+  def photos(offset = 0, limit = nil)
+    result = []
+    photos = Photo.find_photos_for_place(@id).skip(offset)
+    photos = photos.limit(limit) unless limit.nil?
+
+    photos.each do |e|
+      result << Photo.new(e)
+    end
+    return result
+  end
 end
