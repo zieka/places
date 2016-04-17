@@ -90,7 +90,7 @@ class Place
   # apply a provided limit or no limit if not provided (Hint: $limit and q.pipeline method)
   # return the result of the above query (Hint: collection.find.aggregate(...))
   def self.get_address_components(sort = nil, offset = 0, limit = nil)
-    addressJSON = [
+    clause = [
       {
         :$unwind => '$address_components'
       },
@@ -103,11 +103,11 @@ class Place
       }
     ]
 
-    addressJSON << {:$sort => sort} unless sort.nil?
-    addressJSON << {:$skip => offset} unless offset == 0
-    addressJSON << {:$limit => limit} unless limit.nil?
+    clause << {:$sort => sort} unless sort.nil?
+    clause << {:$skip => offset} unless offset == 0
+    clause << {:$limit => limit} unless limit.nil?
 
-    collection.find.aggregate(addressJSON)
+    collection.find.aggregate(clause)
   end
 
   # accept no arguments
@@ -119,7 +119,7 @@ class Place
   # return a simple collection of just the country names (long_name).
   # You will have to use application code to do this last step. (Hint: .to_a.map {|h| h[:_id]})
   def self.get_country_names
-    countryJSON = [
+    clause = [
       {
         :$unwind => '$address_components'
       },
@@ -141,7 +141,31 @@ class Place
       }
     ]
 
-    result = collection.find.aggregate(countryJSON) 
+    result = collection.find.aggregate(clause)
     result.to_a.map {|e| e[:_id]}
   end
+
+  # accept a single country_code parameter
+  # locate each address_component with a matching short_name being tagged with the country type (Hint:$match)
+  # return only the _id property from the database (Hint: $project)
+  # return only a collection of _ids converted to Strings (Hint: .map {|doc| doc[:_id].to_s})
+
+  def self.find_ids_by_country_code(country_code)
+    clause= [
+      {
+        :$match => {
+          :"address_components.types" => "country",
+          :"address_components.short_name" => country_code
+        }
+      },
+      {
+        :$project => {
+          :_id => 1
+        }
+      }
+    ]
+
+    result = collection.find.aggregate(clause)
+    result.to_a.map {|e| e[:_id].to_s }
+end
 end
