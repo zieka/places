@@ -1,4 +1,10 @@
 class Place
+  include ActiveModel::Model
+
+  def persisted?
+    !@id.nil?
+  end
+
   include Mongoid::Document
 
   # a read/write (String) attribute called id
