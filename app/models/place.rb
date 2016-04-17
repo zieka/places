@@ -63,7 +63,16 @@ class Place
   def self.find(id)
     i = BSON::ObjectId.from_string(id)
     result = collection.find(:_id => i).first
-    result.nil? ? nil : Place.new(result) 
+    result.nil? ? nil : Place.new(result)
   end
 
+  # accept two optional arguments: offset and limit in that order. offset must
+  # default to no offset and limit must default to no limit
+  # locate all documents within the places collection within paging limits
+  # return each document as in instance of a Place within a collection
+  def self.all(offset=0,limit=nil)
+    result = collection.find({}).skip(offset)
+    result = result.limit(limit) unless limit.nil?
+    result = to_places(result)
+  end
 end
