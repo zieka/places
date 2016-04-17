@@ -46,4 +46,14 @@ class Place
     collection.find(:'address_components.short_name' => string)
   end
 
+  # accept an input parameter
+  # iterate over contents of that input parameter
+  # change each document hash to a Place instance (Hint: Place.new)
+  # return a collection of results containing Place objects
+  def self.to_places(input)
+    input.map do |e|
+      Place.new(e)
+    end
+  end
+
 end
