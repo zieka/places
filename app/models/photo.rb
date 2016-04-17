@@ -87,4 +87,18 @@ class Photo
     doc = mongo_client.database.fs.find(:_id => BSON::ObjectId(id)).first
     doc.nil? ? nil : Photo.new(doc)
   end
+
+  # accept no arguments
+  # read the data contents from GridFS for the associated file
+  # return the data bytes
+  def contents
+    doc = self.class.mongo_client.database.fs.find_one(:_id => BSON::ObjectId(@id))
+    if doc
+      buffer = ""
+      doc.chunks.reduce([]) do |x, e|
+        buffer << e.data.data
+      end
+      return buffer
+    end
+  end
 end
