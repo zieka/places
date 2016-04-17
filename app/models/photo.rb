@@ -101,4 +101,12 @@ class Photo
       return buffer
     end
   end
+
+  # accept no arguments
+  # delete the file and its contents from GridFS
+  def destroy
+  	self.class.mongo_client.database.fs.find(:_id => BSON::ObjectId(@id)).delete_one
+  end
+
+
 end
