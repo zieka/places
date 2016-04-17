@@ -109,4 +109,39 @@ class Place
 
     collection.find.aggregate(addressJSON)
   end
+
+  # accept no arguments
+  # create separate documents for address_components.long_name and
+  # address_components.types (Hint:$project and $unwind)
+  # select only those documents that have a address_components.types element
+  # equal to "country" (Hint:$match)
+  # form a distinct list based on address_components.long_name (Hint: $group)
+  # return a simple collection of just the country names (long_name).
+  # You will have to use application code to do this last step. (Hint: .to_a.map {|h| h[:_id]})
+  def self.get_country_names
+    countryJSON = [
+      {
+        :$unwind => '$address_components'
+      },
+      {
+        :$project => {
+          :'address_components.long_name' => 1,
+          :'address_components.types' => 1
+        }
+      },
+      {
+        :$match => {
+          :"address_components.types" => "country"
+        }
+      },
+      {
+        :$group => {
+          :"_id" => '$address_components.long_name'
+        }
+      }
+    ]
+
+    result = collection.find.aggregate(countryJSON) 
+    result.to_a.map {|e| e[:_id]}
+  end
 end
