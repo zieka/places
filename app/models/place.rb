@@ -149,7 +149,6 @@ class Place
   # locate each address_component with a matching short_name being tagged with the country type (Hint:$match)
   # return only the _id property from the database (Hint: $project)
   # return only a collection of _ids converted to Strings (Hint: .map {|doc| doc[:_id].to_s})
-
   def self.find_ids_by_country_code(country_code)
     clause= [
       {
@@ -167,5 +166,18 @@ class Place
 
     result = collection.find.aggregate(clause)
     result.to_a.map {|e| e[:_id].to_s }
-end
+  end
+
+  # create_indexes must make sure the 2dsphere index is in place for the
+  # geometry.geolocation property(Hint: Mongo::Index::GEO2DSPHERE)
+  def self.create_indexes
+    collection.indexes.create_one(:'geometry.geolocation' => Mongo::Index::GEO2DSPHERE)
+  end
+
+  # remove_indexes must make sure the 2dsphere index is removed from the collection
+  # (Hint:Place.collection.indexes.map {|r| r[:name] } displays the names of each index)
+  def self.remove_indexes
+    collection.indexes.drop_one('geometry.geolocation_2dsphere')
+  end
+
 end
