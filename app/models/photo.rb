@@ -147,4 +147,13 @@ class Photo
     end
   end
 
+  # accept the ID of a place in either BSON::ObjectId or String ID form
+  # (Hint: BSON::ObjectId.from_string(place_id.to_s)
+  # find GridFS file documents with the BSON::ObjectId form of that ID in the
+  # metadata.place property.
+  # return the result view
+  def self.find_photos_for_place(place_id)
+  	mongo_client.database.fs.find(:'metadata.place' => BSON::ObjectId.from_string(place_id.to_s))
+  end
+
 end
