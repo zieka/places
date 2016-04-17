@@ -78,4 +78,13 @@ class Photo
   		Photo.new(e)
   	end
   end
+
+  # accept a single String parameter for the id
+  # locate the file associated with the id by converting it back to a BSON::ObjectId and using in an :_id query.
+  # set the values of id and location witin the model class based on the properties returned from the query.
+  # return an instance of the Photo model class
+  def self.find(id)
+    doc = mongo_client.database.fs.find(:_id => BSON::ObjectId(id)).first
+    doc.nil? ? nil : Photo.new(doc)
+  end
 end
