@@ -56,4 +56,14 @@ class Place
     end
   end
 
+  # accept a single String id as an argument
+  # convert the id to BSON::ObjectId form (Hint: BSON::ObjectId.from_string(s))
+  # find the document that matches the id
+  # return an instance of Place initialized with the document if found (Hint: Place.new)
+  def self.find(id)
+    i = BSON::ObjectId.from_string(id)
+    result = collection.find(:_id => i).first
+    result.nil? ? nil : Place.new(result) 
+  end
+
 end
