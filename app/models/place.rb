@@ -199,4 +199,13 @@ class Place
 
     collection.find(clause)
   end
+
+  # accept an optional parameter that sets a maximum distance threshold in meters
+  # locate all places within the specified maximum distance threshold
+  # return the collection of matching documents as a collection of Place instances
+  # using the to_places class method added earlier.
+  def near(max_meters=nil)
+    result = self.class.near(@location, max_meters)
+    self.class.to_places(result)
+  end
 end
