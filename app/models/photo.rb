@@ -28,5 +28,43 @@ class Photo
     db = Mongoid::Clients.default
   end
 
+  # take no arguments
+  # return true if the photo instance has been stored to GridFS (Hint: @id.nil?)
+  def persisted?
+    !@id.nil?
+  end
 
+  # check whether the instance is already persisted and do nothing (for now) if
+  # already persisted (Hint: use your new persisted? method to determine if your instance has been persisted)
+  # use the exifr gem to extract geolocation information from the jpeg image.
+  # store the content type of image/jpeg in the GridFS contentType file property.
+  # store the GeoJSON Point format of the image location in the GridFS metadata
+  # file property and the object in class’ location property.
+  # store the data contents in GridFS
+  # store the generated _id for the file in the :id property of the Photo model instance.
+  def save
+    unless persisted?
+      gps = EXIFR::JPEG.new(@contents).gps
+      description = {}
+      description[:content_type] = 'image/jpeg'
+      description[:metadata] = {}
+      @location = Point.new(:lng => gps.longitude, :lat => gps.latitude)
+      description[:metadata][:location] = @location.to_hash
+      description[:metadata][:place] = @place
+
+      if @contents
+        @contents.rewind
+        grid_file = Mongo::Grid::File.new(@contents.read, description)
+        @id = self.class.mongo_client.database.fs.insert_one(grid_file).to_s
+      end
+    else
+      self.class.mongo_client.database.fs.find(:_id => BSON::ObjectId(@id))
+        .update_one(:$set => {
+          :metadata => {
+            :location => @location.to_hash,
+            :place => @place
+          }
+        })
+    end
+  end
 end
