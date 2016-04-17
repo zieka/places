@@ -81,4 +81,32 @@ class Place
   def destroy
     self.class.collection.delete_one(:_id => BSON::ObjectId.from_string(@id))
   end
+
+  # accept optional sort, offset, and limit parameters
+  # extract all address_component elements within each document contained within the collection (Hint:$unwind)
+  # return only the _id, address_components, formatted_address, and geometry.geolocation elements(Hint: $project)
+  # apply a provided sort or no sort if not provided (Hint: $sort and q.pipeline method)
+  # apply a provided offset or no offset if not provided (Hint: $skip and q.pipeline method)
+  # apply a provided limit or no limit if not provided (Hint: $limit and q.pipeline method)
+  # return the result of the above query (Hint: collection.find.aggregate(...))
+  def self.get_address_components(sort = nil, offset = 0, limit = nil)
+    addressJSON = [
+      {
+        :$unwind => '$address_components'
+      },
+      {
+        :$project => {
+          :address_components => 1,
+          :formatted_address => 1,
+          :'geometry.geolocation' => 1
+        }
+      }
+    ]
+
+    addressJSON << {:$sort => sort} unless sort.nil?
+    addressJSON << {:$skip => offset} unless offset == 0
+    addressJSON << {:$limit => limit} unless limit.nil?
+
+    collection.find.aggregate(addressJSON)
+  end
 end
