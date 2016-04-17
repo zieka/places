@@ -22,7 +22,7 @@ class Place
 
 
   def self.mongo_client
-    db = Mongo::Client.new('mongodb://localhost:27017')
+    db = Mongoid::Clients.default
   end
 
   def self.collection
