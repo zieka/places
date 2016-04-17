@@ -75,4 +75,10 @@ class Place
     result = result.limit(limit) unless limit.nil?
     result = to_places(result)
   end
+
+  # accept no arguments
+  # delete the document from the places collection that has an _id associated with the id of the instance.
+  def destroy
+    self.class.collection.delete_one(:_id => BSON::ObjectId.from_string(@id))
+  end
 end
