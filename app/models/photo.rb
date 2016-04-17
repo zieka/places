@@ -67,4 +67,15 @@ class Photo
         })
     end
   end
+
+  # accept an optional set of arguments for skipping into and limiting the results of a search
+  # default the offset (Hint: skip) to 0 and the limit to unlimited
+  # return a collection of Photo instances representing each file returned from the database (Hint: ...find.map {|doc| Photo.new(doc) })
+  def self.all(skip = 0, limit = nil)
+  	result = mongo_client.database.fs.find({}).skip(skip)
+  	result = result.limit(limit) unless limit.nil?
+  	result.map do |e|
+  		Photo.new(e)
+  	end
+  end
 end
